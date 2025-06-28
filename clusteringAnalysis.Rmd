@@ -1,0 +1,86 @@
+
+---
+title: "User Behavior Clustering & Persona Analysis"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(ggplot2)
+library(cluster)
+library(factoextra)
+```
+
+## Load Data
+
+```{r}
+data <- read.csv("user_engagement_data.csv")
+head(data)
+```
+
+## Exploratory Data Analysis
+
+### Distribution of Daily Usage Minutes
+
+```{r}
+ggplot(data, aes(x = daily_usage_minutes)) +
+  geom_histogram(binwidth = 5, fill = "#FBB03B", color = "black") +
+  geom_density(aes(y = ..count.. * 5), color = "#F7931E", size = 1) +
+  labs(title = "Distribution of Daily Usage Minutes", x = "Minutes", y = "Number of Users")
+```
+
+### Top User Types by Count
+
+```{r}
+data %>%
+  count(user_type) %>%
+  ggplot(aes(x = reorder(user_type, n), y = n, fill = user_type)) +
+  geom_col() +
+  coord_flip() +
+  labs(title = "Top Interests of Users", x = "Interest", y = "Number of Users") +
+  theme_minimal()
+```
+
+## Clustering Analysis
+
+### Standardize Data
+
+```{r}
+clustering_data <- scale(data[, c("daily_usage_minutes", "login_frequency", "pins_saved", "boards_created")])
+```
+
+### Determine Optimal Clusters
+
+```{r}
+fviz_nbclust(clustering_data, kmeans, method = "wss")
+```
+
+### K-means Clustering (k=3)
+
+```{r}
+set.seed(123)
+kmeans_model <- kmeans(clustering_data, centers = 3)
+data$cluster <- as.factor(kmeans_model$cluster)
+```
+
+### Cluster Visualization
+
+```{r}
+fviz_cluster(kmeans_model, data = clustering_data, geom = "point", ellipse.type = "convex") +
+  labs(title = "User Clusters Based on Engagement Patterns")
+```
+
+## Cluster Summary
+
+```{r}
+data %>%
+  group_by(cluster) %>%
+  summarise(
+    avg_minutes = mean(daily_usage_minutes),
+    avg_logins = mean(login_frequency),
+    avg_pins = mean(pins_saved),
+    avg_boards = mean(boards_created),
+    .groups = "drop"
+  )
+```
