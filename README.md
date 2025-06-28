@@ -34,7 +34,7 @@ We apply K-means clustering to identify behavior groups and build basic user per
 ## Files
 
 - `user_engagement_data.csv`: Simulated user engagement dataset.
-- `clusterAnalysis.Rmd`: R Markdown file with analysis code and visualization.
+- `clusteringAnalysis.Rmd`: R Markdown file with analysis code and visualization.
 - `images/`: Folder containing all output figures.
 
 ## Tools Used
